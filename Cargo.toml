@@ -1,0 +1,9 @@
+[package]
+name = "dnesser"
+license = "AGPL-3.0"
+authors = ["Alex Schofield", "Alex Schofield <git@ajschof.me>"]
+version = "1.0.0-alpha.4"
+description = "Rust-based DNS ad-blocking server"
+license = "AGPL-3.0"
+keywords = ["dns", "open-source"]
+readme = "README.md"
