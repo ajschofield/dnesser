@@ -67,7 +67,7 @@ fn main() -> std::io::Result<()> {
         }
         // If the checks are happy, continue as normal
         debug!("Gotcha! Received {} bytes from {}", size, src);
-        
+
         let header_raw = &buf[..12];
         let header = Header{
             id:        u16::from_be_bytes([header_raw[0], header_raw[1]]),
@@ -80,6 +80,52 @@ fn main() -> std::io::Result<()> {
         
         // Log parsed header
         debug!("Parsed header: {:?}", header);
+
+        // First, create a new String variable to store the domain name
+        let mut qname = String::new();
+
+        // We start at offset 12, which is right after the header. We have to
+        // do this since the domain name can be variable.
+        let mut cursor = 12;
+        // Let's loop through the bytes to try to find the full domain name
+        loop {
+            // We shouldn't read past the buffer size, so check for that.
+            if cursor >= size {
+                break;
+            }
+            // Read the length byte of the current label
+            let len = buf[cursor] as usize;
+            cursor += 1; // Increment by one, move past the length byte
+            // If the length is 0, we've hit the end of the name
+            if len == 0 {
+                break;
+            }
+            // We need to check if the label is fully inside the buffer, and
+            // if so we need to reject it (malformed)
+            if cursor + len > size{
+                warn!("QNAME: label length exceeds buffer size");
+                break;
+            }
+            // We now know how to slice the buf to get the current label in
+            // the current iteration of the sequence
+            let label_raw = &buf[cursor..cursor + len];
+            let label = String::from_utf8(label_raw.to_vec()).unwrap();
+
+            // Push it into the variable so that as each iteration completes
+            // the qname can be constructed
+            qname.push_str(&label);
+            // On the final iteration of getting the last label, which will
+            // be the TLD, because there are no checks whether the loop is
+            // nearing completion an additional '.' will be added.
+            // It's a side effect of the logic, but apparently is technically
+            // correct in DNS.
+            qname.push('.');
+            
+            // And we go around again!
+            cursor += len;
+        }
+
+        debug!("Gotcha! QNAME: {:?}", qname);
 
     }
 }
