@@ -127,5 +127,25 @@ fn main() -> std::io::Result<()> {
 
         debug!("Gotcha! QNAME: {:?}", qname);
 
+        // Since QTYPE and QCLASS are both 2 bytes, we can read them directly
+        if cursor + 4 > size {
+            warn!("QTYPE/QCLASS: packet too short - cannot read");
+            continue;
+        }
+        
+        // QTYPE is 2 bytes so we read from cursor to cursor + 2
+        let qtype_raw = &buf[cursor..cursor + 2];
+        let qtype = u16::from_be_bytes([qtype_raw[0], qtype_raw[1]]);
+        debug!("Gotcha! QTYPE: {}", qtype);
+        
+        // Again, QCLASS is 2 bytes so we read from cursor + 2 to cursor + 4
+        let qclass_raw = &buf[cursor + 2..cursor + 4];
+        let qclass = u16::from_be_bytes([qclass_raw[0], qclass_raw[1]]);
+        debug!("Gotcha! QCLASS: {}", qclass);
+        
+        // We can ignore the rest of the packet for now, as we have all the
+        // information we need to process a basic query.
+
+
     }
 }
