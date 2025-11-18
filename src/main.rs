@@ -1,5 +1,5 @@
 use std::net::UdpSocket;
-use log::{info, debug, LevelFilter};
+use log::{info, debug, error, warn, LevelFilter};
 use simplelog::{CombinedLogger, Config, TermLogger, TerminalMode, ColorChoice};
 
 fn main() -> std::io::Result<()> {
@@ -33,9 +33,30 @@ fn main() -> std::io::Result<()> {
         let mut buf = [0u8; 512];
         // This will block until a UDP packet arrives, and on success returns
         // a tuple: size -> number of bytes client sent; src -> client socket
-        // address (IP & port)
-        let (size, src) = socket.recv_from(&mut buf)?;
-        debug!("Received {} bytes from {}", size, src);
+        // address (IP & port).
+        // Safe: recv_from won't write more than buf.len()
+        let (size, src) = match socket.recv_from(&mut buf) {
+            Ok(tuple) => tuple,
+            Err(e) => {
+                error!("recv_from issue: {}", e);
+                continue;
+            }
+        };
+        // Reject any packets that are larger than 512 bytes
+        if size > 512 {
+            warn!("Packet from {src} larger than 512 bytes (was {size}. Not a \
+             valid query?");
+            continue;
+        }
+        // Reject any packets that are shorter than 12 bytes, possibly
+        // corrupted or truncated for whatever reason (although unlikely)
+        if size < 12 {
+            debug!("Packet from {src} too short (was {size}. Corruption?");
+            continue;
+        }
+        // If the checks are happy, continue as normal
+        debug!("Gotcha! Received {} bytes from {}", size, src);
+
         // For testing with dig command, trim buf to length of what client
         // sent and return to sender
         let response = &buf[..size];
