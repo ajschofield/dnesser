@@ -16,9 +16,10 @@ fn main() -> std::io::Result<()> {
         ]
     ).unwrap();
 
-    // First, bind to 0.0.0.0:53535 (UDP)
-    // CHANGEME Change to 0.0.0.0 and port 53 when further in development
-    let socket = UdpSocket::bind("0.0.0.0:53535")?;
+    // First, bind to 0.0.0.0:53 (UDP) - this previously was 53535 but 
+    // surprisingly macOS lets me bind on port 53 instead so we'll just do 
+    // that I guess? This will be made more robust as development progresses.
+    let socket = UdpSocket::bind("0.0.0.0:53")?;
     info!("Listening on {}", socket.local_addr()?);
 
     loop {
