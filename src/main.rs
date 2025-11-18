@@ -67,8 +67,7 @@ fn main() -> std::io::Result<()> {
         }
         // If the checks are happy, continue as normal
         debug!("Gotcha! Received {} bytes from {}", size, src);
-
-        let response = &buf[..size];
+        
         let header_raw = &buf[..12];
         let header = Header{
             id:        u16::from_be_bytes([header_raw[0], header_raw[1]]),
