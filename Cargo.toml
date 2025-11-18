@@ -6,3 +6,6 @@ description = "Rust-based DNS ad-blocking server"
 keywords = ["dns", "open-source"]
 readme = "README.md"
 edition = "2024"
+[dependencies]
+log = "0.4.28"
+simplelog = "0.12.2"
