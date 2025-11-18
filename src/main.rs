@@ -2,6 +2,17 @@ use std::net::UdpSocket;
 use log::{info, debug, error, warn, LevelFilter};
 use simplelog::{CombinedLogger, Config, TermLogger, TerminalMode, ColorChoice};
 
+// Fixes "Header doesn't implement std::fmt::Debug [E0277]"
+#[derive(Debug)]
+struct Header {
+    id: u16,
+    flags: u16,
+    qdcount: u16,
+    ancount: u16,
+    nscount: u16,
+    arcount: u16,
+}
+
 fn main() -> std::io::Result<()> {
     let log_level = if cfg!(debug_assertions) {
         LevelFilter::Debug
@@ -57,9 +68,19 @@ fn main() -> std::io::Result<()> {
         // If the checks are happy, continue as normal
         debug!("Gotcha! Received {} bytes from {}", size, src);
 
-        // For testing with dig command, trim buf to length of what client
-        // sent and return to sender
         let response = &buf[..size];
-        socket.send_to(response, &src)?;
+        let header_raw = &buf[..12];
+        let header = Header{
+            id:        u16::from_be_bytes([header_raw[0], header_raw[1]]),
+            flags:     u16::from_be_bytes([header_raw[2], header_raw[3]]),
+            qdcount:   u16::from_be_bytes([header_raw[4], header_raw[5]]),
+            ancount:   u16::from_be_bytes([header_raw[6], header_raw[7]]),
+            nscount:   u16::from_be_bytes([header_raw[8], header_raw[9]]),
+            arcount:   u16::from_be_bytes([header_raw[10], header_raw[11]]),
+        };
+        
+        // Log parsed header
+        debug!("Parsed header: {:?}", header);
+
     }
 }
