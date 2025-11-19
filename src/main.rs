@@ -41,7 +41,12 @@ fn main() -> std::io::Result<()> {
         // TODO Add async functionality further in development
         // The 512 byte limit follows RFC 1035, and will do until EDNS is
         // supported.
-        let mut buf = [0u8; 512];
+        // UPDATE: Changed to 1233 bytes to allow for the size checks to work
+        // properly. The buffer before had a maximum size of 512 bytes,
+        // meaning that any packet larger than that would be truncated by
+        // the OS before our code could see it, making it impossible to
+        // check for oversized packets. This is also future proofing for EDNS.
+        let mut buf = [0u8; 1233];
         // This will block until a UDP packet arrives, and on success returns
         // a tuple: size -> number of bytes client sent; src -> client socket
         // address (IP & port).
