@@ -1,4 +1,4 @@
-# dnsblock
+# dnesser
 Rust-based DNS sinkhole designed to block unwanted domains.
 
 Currently under development. This is also my first proper Rust project, and 
